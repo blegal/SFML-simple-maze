@@ -5,6 +5,21 @@
 #ifndef MazeTiles
 #define MazeTiles
 
+#define T_BUG          0
+#define T_CHEMIN       1
+#define T_OBSTACLE     2
+#define T_CADRE        3
+#define T_HERO_D       4   // DROITE
+#define T_HERO_B       5   // BAS
+#define T_HERO_G       6   // GAUCHE
+#define T_HERO_H       7   // HAUT
+#define T_FINALE       8
+#define T_VISITE       9
+#define T_SOLUCE_D    10   // DROITE
+#define T_SOLUCE_B    11   // BAS
+#define T_SOLUCE_G    12   // GAUCHE
+#define T_SOLUCE_H    13   // HAUT
+
 #define ERROR_CELL  -1
 #define UNKNOW_CELL  1
 #define VISITED_CELL 4
