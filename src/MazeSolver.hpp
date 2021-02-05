@@ -20,6 +20,7 @@ class MazeSolver
 public:
     std::vector<uint32_t> cx;
     std::vector<uint32_t> cy;
+    std::vector<uint32_t> fleche;
 
 private:
     uint32_t w;

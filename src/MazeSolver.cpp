@@ -15,28 +15,51 @@ bool MazeSolver::recursive_search(const uint32_t posX, const uint32_t posY)
     cx.push_back( posX );
     cy.push_back( posY );
 
+    //
+    // On essaye d'aller vers la droite
+    //
     if( get_xy(posX+1, posY) != 1 ) // 0 = road, 1 = wall, 2 = error
     {
+        fleche.push_back( T_SOLUCE_D );
         const bool ok = recursive_search(posX+1, posY);
-        if( ok ) { set_xy(posX, posY, 0); return true; }
+        if( ok ) {
+            set_xy(posX, posY, 0);
+            return true;
+        }
+        fleche.pop_back();
     }
 
+    //
+    // On essaye d'aller vers le bas
+    //
     if( get_xy(posX, posY-1) != 1 ) // 0 = road, 1 = wall, 2 = error
     {
+        fleche.push_back( T_SOLUCE_H );
         const bool ok = recursive_search(posX, posY-1);
         if( ok ) { set_xy(posX, posY, 0); return true; }
+        fleche.pop_back();
     }
 
-    if( get_xy(posX, posY+1) != 1 ) // 0 = road, 1 = wall, 2 = error
-    {
-        const bool ok = recursive_search(posX, posY+1);
-        if( ok ) { set_xy(posX, posY, 0); return true; }
-    }
-
+    //
+    // On essaye d'aller vers la gauche
+    //
     if( get_xy(posX-1, posY) != 1 ) // 0 = road, 1 = wall, 2 = error
     {
+        fleche.push_back( T_SOLUCE_G );
         const bool ok = recursive_search(posX-1, posY);
         if( ok ) { set_xy(posX, posY, 0); return true; }
+        fleche.pop_back();
+    }
+
+    //
+    // On essaye d'aller vers le haut
+    //
+    if( get_xy(posX, posY+1) != 1 ) // 0 = road, 1 = wall, 2 = error
+    {
+        fleche.push_back( T_SOLUCE_B );
+        const bool ok = recursive_search(posX, posY+1);
+        if( ok ) { set_xy(posX, posY, 0); return true; }
+        fleche.pop_back();
     }
 
     set_xy(posX, posY, 0); // On restaure la case comme etant utilisable
@@ -58,13 +81,14 @@ void MazeSolver::Update(Maze& m)
 {
     cx.clear();
     cy.clear();
+    fleche.clear();
 
     for(uint32_t p = 0; p < w * h; p += 1)
     {
         const uint32_t v = m.GetLevel()[p];
-        if     ( v == WALL_CELL   ) maze[p] = 1;
-        else if( v == BORDER_CELL ) maze[p] = 1;
-        else                        maze[p] = 0;
+        if     ( v == T_OBSTACLE ) maze[p] = 1;
+        else if( v == T_CADRE    ) maze[p] = 1;
+        else                       maze[p] = 0;
     }
 
     set_xy(w-1, h-2, 2);

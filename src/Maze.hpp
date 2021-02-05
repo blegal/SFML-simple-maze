@@ -31,7 +31,11 @@ private:
     uint32_t hero_y;
 
     uint8_t* Level;
-    uint8_t* visited;
+    uint8_t* texture;
+//#define _MY_DEBUG_
+#ifdef _MY_DEBUG_
+    uint8_t* buffer;
+#endif
 
 public:
 
@@ -46,6 +50,9 @@ public:
     void tileType(const int32_t x, const int32_t y, const uint32_t type);
 
     void generate_2();
+
+    void BasicSprites();
+    void AdvancedSprites();
 
     bool isGameFinished();
 
@@ -70,6 +77,7 @@ public:
 
 public:
     uint8_t* GetLevel();
+    uint8_t* GetSprites();
 };
 
 #endif //MAZE_MAZE_H

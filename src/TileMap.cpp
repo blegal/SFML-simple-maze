@@ -11,21 +11,14 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u _tileSize, const uin
     width    = _width;
     height   = _height;
 
-    // on charge la texture du tileset
-    if( (tileSize.x == 16) && (tileSize.y == 16) )
-    {
-        if (!m_tileset.loadFromFile("../sprites/tileset_16px.png"))
-            return false;
-    }
-    else if( (tileSize.x == 32) && (tileSize.y == 32) )
-    {
-        if (!m_tileset.loadFromFile("../sprites/tileset_32px.png"))
-            return false;
-    }
-    else
+    if ( !m_tileset.loadFromFile(tileset) )
     {
         return false;
     }
+
+    printf("(DD) Tile loading is successfull :%dx%d\n", width, height);
+    printf("(DD) - Tile size    : (%3dx%3d)\n", tileSize.x, tileSize.y);
+    printf("(DD) - Texture size : (%3dx%3d)\n", m_tileset.getSize().x, m_tileset.getSize().y);
 
     // on redimensionne le tableau de vertex pour qu'il puisse contenir tout le niveau
     m_vertices.setPrimitiveType(sf::Quads);
@@ -46,10 +39,10 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u _tileSize, const uin
             sf::Vertex* quad = &m_vertices[(i + j * width) * 4];
 
             // on définit ses quatre coins
-            quad[0].position = sf::Vector2f( i * tileSize.x,      j * tileSize.y);
-            quad[1].position = sf::Vector2f((i + 1) * tileSize.x, j * tileSize.y);
+            quad[0].position = sf::Vector2f( i      * tileSize.x,  j      * tileSize.y);
+            quad[1].position = sf::Vector2f((i + 1) * tileSize.x,  j      * tileSize.y);
             quad[2].position = sf::Vector2f((i + 1) * tileSize.x, (j + 1) * tileSize.y);
-            quad[3].position = sf::Vector2f(i * tileSize.x, (j + 1) * tileSize.y);
+            quad[3].position = sf::Vector2f( i      * tileSize.x, (j + 1) * tileSize.y);
 
             // on définit ses quatre coordonnées de texture
             quad[0].texCoords = sf::Vector2f( tu * tileSize.x, tv * tileSize.y);
@@ -61,9 +54,12 @@ bool TileMap::load(const std::string& tileset, sf::Vector2u _tileSize, const uin
     return true;
 }
 
+
 void TileMap::setHeroPosition(const uint32_t x, const uint32_t y, const uint32_t sprite)
 {
+
 }
+
 
 void TileMap::setTile(const uint32_t x, const uint32_t y, const uint32_t sprite)
 {
@@ -78,6 +74,7 @@ void TileMap::setTile(const uint32_t x, const uint32_t y, const uint32_t sprite)
     quad[2].texCoords = sf::Vector2f((tu + 1) * tileSize.x, (tv + 1) * tileSize.y);
     quad[3].texCoords = sf::Vector2f( tu      * tileSize.x, (tv + 1) * tileSize.y);
 }
+
 
 void TileMap::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {

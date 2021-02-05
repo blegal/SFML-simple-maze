@@ -14,13 +14,19 @@
 #include "Maze.hpp"
 #include "MazeSolver.hpp"
 
+#include "./TileAnalizers/Analyzer.hpp"
+#include "./TileAnalizers/SimpleAnalyzer.hpp"
+#include "./TileAnalizers/PathAnalyzer.hpp"
 
 int main(int argc, char* argv[])
 {
 
-    uint32_t width     = 64 + 1;
-    uint32_t height    = 32 + 1;
-    uint32_t tile_size = 16;
+    uint32_t width       = 64 + 1;
+    uint32_t height      = 32 + 1;
+    uint32_t tile_size   = 16;
+    bool     texture     = false;
+    std::string filename = "../sprites/tileset_zelda_nes_16x16.png";
+
 
     int c;
     while (1)
@@ -30,6 +36,8 @@ int main(int argc, char* argv[])
             {"width",   required_argument, 0, 'w'},
             {"height",  required_argument, 0, 'h'},
             {"tile",    required_argument, 0, 't'},
+            {"file",    required_argument, 0, 'f'},
+            {"texture", no_argument, 0,       'T'},
             {"random",  no_argument, 0,       'r'},
             {0, 0, 0, 0}
         };
@@ -57,14 +65,32 @@ int main(int argc, char* argv[])
 
             case 'w':
                 width  = std::atoi( optarg );
+                if( width%2 != 1 )
+                {
+                    printf("(EE) Error the width of the Maze is not odd.\n");
+                    exit( EXIT_FAILURE );
+                }
                 break;
 
             case 'h':
                 height = std::atoi( optarg );
+                if( height%2 != 1 )
+                {
+                    printf("(EE) Error the height of the Maze is not odd.\n");
+                    exit( EXIT_FAILURE );
+                }
                 break;
 
             case 't':
                 tile_size = std::atoi( optarg );
+                break;
+
+            case 'T':
+                texture = true;
+                break;
+
+            case 'f':
+                filename = optarg ;
                 break;
 
             default:
@@ -82,21 +108,50 @@ int main(int argc, char* argv[])
 
     printf("(DD) Generating a maze of size %dx%d\n", width, height);
 
+    sf::Texture m_tileset;
+    if ( !m_tileset.loadFromFile( filename ) )
+    {
+        printf("(EE) An error happen during the pixelset reading...\n");
+        return EXIT_FAILURE;
+    }
+    tile_size = m_tileset.getSize().x;
+
+
     Maze maze(width, height);
     maze.generate_2();
+
+    Analyzer* tile_analyzer;
+    if( texture == true)
+    {
+        tile_analyzer = new PathAnalyzer(maze);
+    }else{
+        tile_analyzer = new SimpleAnalyzer(maze);
+    }
+
     MazeSolver ms(maze);
 
     sf::RenderWindow window(sf::VideoMode(tile_size * width, tile_size * height), "Tilemap");
 
     // on crée la tilemap avec le niveau précédemment défini
     TileMap map;
-    if (!map.load("tileset_16px.png", sf::Vector2u(tile_size, tile_size), maze.GetLevel(), width, height))
+    if (!map.load(
+            filename,
+            sf::Vector2u(tile_size, tile_size),
+            tile_analyzer->GetSprites(),
+            width,
+            height)
+       )
+    {
         return -1;
+    }
 
     //
     // On affiche le héra sur la map
     //
-    map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), HERO_RIGHT);
+    map.setTile(
+            maze.GetHeroPosX(),
+            maze.GetHeroPosY(),
+            T_HERO_D);
 
     auto t1 = std::chrono::steady_clock::now();
 
@@ -117,6 +172,10 @@ int main(int argc, char* argv[])
                         window.close();
                         break;
 
+                    case sf::Keyboard::Q:
+                        window.close();
+                        break;
+
                     case sf::Keyboard::Space:
                         window.close();
                         break;
@@ -132,36 +191,36 @@ int main(int argc, char* argv[])
                     case sf::Keyboard::Up:
                         if( maze.CanHeroMoveUp() )
                         {
-                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), VISITED_CELL);
+                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), T_VISITE);
                             maze.MoveHeroUp();
-                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), HERO_UP);
+                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), T_HERO_H);
                         }
                         break;
 
                     case sf::Keyboard::Down:
                         if( maze.CanHeroMoveDown() )
                         {
-                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), VISITED_CELL);
+                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), T_VISITE);
                             maze.MoveHeroDown();
-                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), HERO_DOWN);
+                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), T_HERO_B);
                         }
                         break;
 
                     case sf::Keyboard::Left:
                         if( maze.CanHeroMoveLeft() )
                         {
-                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), VISITED_CELL);
+                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), T_VISITE);
                             maze.MoveHeroLeft();
-                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), HERO_LEFT);
+                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), T_HERO_G);
                         }
                         break;
 
                     case sf::Keyboard::Right:
                         if( maze.CanHeroMoveRight() )
                         {
-                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), VISITED_CELL);
+                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), T_VISITE);
                             maze.MoveHeroRight();
-                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), HERO_RIGHT);
+                            map.setTile(maze.GetHeroPosX(), maze.GetHeroPosY(), T_HERO_D);
                         }
                         break;
 
@@ -175,7 +234,7 @@ int main(int argc, char* argv[])
                     case sf::Keyboard::S:
                         ms.Update( maze );
                         for(int p = 0; p < ms.cx.size(); p += 1)
-                            map.setTile(ms.cx[p], ms.cy[p], TILE_SOLUCE);
+                            map.setTile(ms.cx[p], ms.cy[p], ms.fleche[p]);
                         break;
 
                     default:
