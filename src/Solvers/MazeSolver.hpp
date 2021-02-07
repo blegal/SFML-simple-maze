@@ -12,8 +12,8 @@
 #include <cstdlib>
 #include <vector>
 
-#include "MazeTiles.hpp"
-#include "Maze.hpp"
+#include "Tiles/MazeTiles.hpp"
+#include "Mazes/Maze.hpp"
 
 class MazeSolver
 {

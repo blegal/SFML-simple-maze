@@ -10,17 +10,18 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 
-#include "TileMap.hpp"
-#include "Maze.hpp"
-#include "MazeSolver.hpp"
+#include "Interface/TileMap.hpp"
+#include "Mazes/Maze.hpp"
+#include "Solvers/MazeSolver.hpp"
 
 #include "./TileAnalizers/Analyzer.hpp"
 #include "./TileAnalizers/SimpleAnalyzer.hpp"
 #include "./TileAnalizers/PathAnalyzer.hpp"
+#include "./TileAnalizers/WallAnalyzer.hpp"
+
 
 int main(int argc, char* argv[])
 {
-
     uint32_t width       = 64 + 1;
     uint32_t height      = 32 + 1;
     uint32_t tile_size   = 16;
@@ -106,7 +107,6 @@ int main(int argc, char* argv[])
         exit( EXIT_FAILURE );
     }
 
-    printf("(DD) Generating a maze of size %dx%d\n", width, height);
 
     sf::Texture m_tileset;
     if ( !m_tileset.loadFromFile( filename ) )
@@ -116,6 +116,34 @@ int main(int argc, char* argv[])
     }
     tile_size = m_tileset.getSize().x;
 
+    printf("(DD) Dimension de l'écran %dx%d\n", sf::VideoMode::getDesktopMode().width, sf::VideoMode::getDesktopMode().height);
+
+    const uint32_t screen_w = sf::VideoMode::getDesktopMode().width;
+    const uint32_t screen_h = sf::VideoMode::getDesktopMode().height;
+
+    sf::RenderWindow window(sf::VideoMode(screen_w, screen_h), "Tilemap");
+
+    printf("(DD) Dimension du de la fenetre SFML demandée : %dx%d\n", screen_w, screen_h);
+    printf("(DD) Dimension du de la fenetre SFML obtenue  : %dx%d\n", window.getSize().x, window.getSize().y);
+
+    const uint32_t window_w = window.getSize().x;
+    const uint32_t window_h = window.getSize().y;
+
+    width  = window_w / m_tileset.getSize().x;
+    height = window_h / m_tileset.getSize().x;
+
+    printf("(DD) Dimension du maze avant correction : %dx%d\n", width, height);
+
+    if( width%2  == 0 ) width  -= 1;
+    if( height%2 == 0 ) height -= 1;
+
+    printf("(DD) Dimension du maze apres correction : %dx%d\n", width, height);
+
+    sf::Vector2u dimWindow(width * m_tileset.getSize().x, height * m_tileset.getSize().x);
+    window.setSize(dimWindow);
+
+    printf("(DD) Dimension du de la fenetre SFML demandee : %dx%d\n", dimWindow.x, dimWindow.y);
+    printf("(DD) Dimension du de la fenetre SFML corrigee : %dx%d\n", window.getSize().x, window.getSize().y);
 
     Maze maze(width, height);
     maze.generate_2();
@@ -123,14 +151,14 @@ int main(int argc, char* argv[])
     Analyzer* tile_analyzer;
     if( texture == true)
     {
-        tile_analyzer = new PathAnalyzer(maze);
+        tile_analyzer = new WallAnalyzer(maze);
+//      tile_analyzer = new PathAnalyzer(maze);
     }else{
         tile_analyzer = new SimpleAnalyzer(maze);
     }
 
     MazeSolver ms(maze);
 
-    sf::RenderWindow window(sf::VideoMode(tile_size * width, tile_size * height), "Tilemap");
 
     // on crée la tilemap avec le niveau précédemment défini
     TileMap map;
@@ -184,10 +212,6 @@ int main(int argc, char* argv[])
                         window.close();
                         break;
 
-//                    case sf::Keyboard::G:
-//                        maze.generate();
-//                        break;
-
                     case sf::Keyboard::Up:
                         if( maze.CanHeroMoveUp() )
                         {
@@ -225,10 +249,11 @@ int main(int argc, char* argv[])
                         break;
 
                     case sf::Keyboard::G:
-                        maze.generate();
+                        maze.generate();                        // On genere un nouveau labyrinthe
+                        tile_analyzer->Update( maze );          // On remet a jour le mapping des tiles
                         for(int y = 0; y < height; y += 1)
                             for(int x = 0; x < width; x += 1)
-                                map.setTile(x, y, maze.GetLevel()[y * width + x]);
+                                map.setTile(x, y, tile_analyzer->GetSprites()[y * width + x]);
                         break;
 
                     case sf::Keyboard::S:
@@ -244,9 +269,9 @@ int main(int argc, char* argv[])
         }
 
         // on dessine le niveau
-        window.clear();
-        window.draw(map);
-        window.display();
+        window.clear  (   );
+        window.draw   (map);
+        window.display(   );
 
         if( maze.isGameFinished() == true )
         {
@@ -256,16 +281,15 @@ int main(int argc, char* argv[])
 
             while (window.pollEvent(event));
 
-            sf::sleep(sf::milliseconds(2000));
-            uint8_t* lvl = maze.GetLevel();
+            sf::sleep(sf::milliseconds(1000));
+
             maze.generate();
+            tile_analyzer->Update( maze );          // On remet a jour le mapping des tiles
+            uint8_t* lvl = tile_analyzer->GetSprites();
+
             for(int y = 0; y < height; y += 1)
-            {
                 for(int x = 0; x < width; x += 1)
-                {
                     map.setTile(x, y, lvl[y * width + x]);
-                }
-            }
 
             t1 = std::chrono::steady_clock::now();
         }

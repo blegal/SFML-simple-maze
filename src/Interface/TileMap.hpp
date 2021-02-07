@@ -9,7 +9,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 
-#include "MazeTiles.hpp"
+#include "Tiles/MazeTiles.hpp"
 
 class TileMap : public sf::Drawable, public sf::Transformable
 {

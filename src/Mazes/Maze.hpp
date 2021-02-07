@@ -13,7 +13,7 @@
 #include <vector>
 #include <cassert>
 
-#include "MazeTiles.hpp"
+#include "Tiles/MazeTiles.hpp"
 
 class Maze
 {

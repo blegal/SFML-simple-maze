@@ -13,8 +13,8 @@
 #include <vector>
 #include <cassert>
 
-#include "../Maze.hpp"
-#include "../MazeTiles.hpp"
+#include "Mazes/Maze.hpp"
+#include "Tiles/MazeTiles.hpp"
 
 class Analyzer
 {
